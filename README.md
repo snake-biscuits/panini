@@ -22,7 +22,7 @@ Planning to try a SDL3 + Vulkan implementation
    - [SourceForge](https://sourceforge.net/projects/panotools/)
 
 ### Language & Libraries
- * Wikipedia: [C23](https://en.wikipedia.org/wiki/C23_(C_standard_revision)
+ * Wikipedia: [C23](https://en.wikipedia.org/wiki/C23_(C_standard_revision))
  * OGLDEV YouTube Playlist: [Vulkan](https://www.youtube.com/playlist?list=PLA0dXqQjCx0RntJy1pqje9uHRF1Z5vZgA)
  * [SDL3 Docs](https://wiki.libsdl.org/SDL3/FrontPage)
     - [CMake Install Guide](https://github.com/libsdl-org/SDL/blob/main/docs/INTRO-cmake.md)
