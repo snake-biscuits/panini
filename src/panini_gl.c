@@ -3,12 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// GLEW (-lGLEW)
+#include <GL/glew.h>
+
 // OpenGL (-lGL)
 #include <GL/gl.h>
 
 // SDL2 (`sdl2-config --cflags --libs`)
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+
+#include "geometry.h"
 
 
 // default to PSVita display resolution
@@ -27,28 +32,6 @@ typedef struct Clock_s {
     uint64_t prev_tick;
     uint64_t tick_length;
 } Clock;
-
-
-typedef struct Vec3_s {
-    float x;
-    float y;
-    float z;
-} Vec3;
-
-
-typedef struct Vertex_s {
-    Vec3  position;
-    // Vec3  normal;
-    // Vec2  uv0;
-} Vertex;
-
-
-typedef struct Geometry_s {
-    int       num_vertices;
-    int       num_indices;
-    Vertex   *vertices;
-    uint32_t *indices;
-} Geometry;
 
 
 typedef struct Scene_s {
@@ -70,8 +53,6 @@ typedef struct Scene_s {
 /////////////////////
 
 
-#if 0
-// move vertex & index buffers onto GPU
 void populate(Scene *scene, Geometry *geo) {
     // vertex buffer
     glGenBuffers(1, &scene->vertex_buffer);
@@ -96,7 +77,6 @@ void populate(Scene *scene, Geometry *geo) {
         GL_STATIC_DRAW);
     scene->num_indices = geo->num_indices;
 }
-#endif
 
 // TODO: load shader from files & compile
 // -- filesystem navigation
@@ -128,11 +108,6 @@ int init_window(int width, int height, SDL_Window **window) {
         return 1;
     }
 
-    // TODO: capture mouse when window is active
-    // -- need to disable when focus changes
-    // SDL_SetRelativeMouseMode(SDL_TRUE);
-    // SDL_CaptureMouse(SDL_TRUE);
-
     return 0;
 }
 
@@ -154,10 +129,17 @@ int init_context(int major, int minor, SDL_Window **window, SDL_GLContext *conte
 }
 
 
+void init_OpenGL() {
+    glewInit();  // load OpenGL functions
+    glClearColor(0.1, 0.4, 0.5, 1.0);
+}
+
+
 void draw_OpenGL(SDL_Window **window) {  // Scene *scene
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // TODO: test triangle
+    // TODO: update scene according to tick updates
+    // -- move the camera
 
     // TODO: render scene
     // switch to scene shader
@@ -196,15 +178,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // TODO: capture mouse when window is active
+    // -- need to disable when focus changes
+    // SDL_SetRelativeMouseMode(SDL_TRUE);
+    // SDL_CaptureMouse(SDL_TRUE);
+
     SDL_GLContext context = NULL;  // void*
     if (init_context(4, 5, &window, &context) != 0) {
         fprintf(stderr, "init_context failed\n");
         return 1;
     }
 
-    // init_gl_state
-    glClearColor(0.1, 0.4, 0.5, 1.0);
+    init_OpenGL();
 
+    // TODO: test triangle
     // Scene scene;
     // init_scene(&scene)
     // - init_buffers(&scene, geometry)
@@ -246,9 +233,6 @@ int main(int argc, char* argv[]) {
         }
         clock.accumulator = clock.delta;
         clock.prev_tick = SDL_GetTicks64();
-
-        // TODO: update scene according to tick updates
-        // -- move the camera
 
         // draw
         // TODO: pass in scene & dt
