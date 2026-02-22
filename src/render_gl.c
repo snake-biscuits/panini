@@ -1,7 +1,7 @@
 // Using C23 Standard
 #include <stdio.h>
 
-#include "render.h"
+#include "render_gl.h"
 
 
 void populate(Scene *scene, Geometry *geo) {
@@ -63,14 +63,14 @@ int compile_glsl(GLuint *shader, GLenum shader_type, int glsl_length, const GLch
     glGetShaderiv(*shader, GL_COMPILE_STATUS, &compiled);
     if (compiled == GL_FALSE) {
         fprintf(stderr, "shader failed to compile: %d\n", shader_type);
-        
+
         GLint log_length;
         glGetShaderiv(*shader, GL_INFO_LOG_LENGTH, &log_length);
         GLchar log[4096];
         // NOTE: not checking if log_length > sizeof(log)
         glGetShaderInfoLog(*shader, sizeof(log), &log_length, log);
         fprintf(stderr, "%s\n", log);
-        
+
         return 1;
     }
 

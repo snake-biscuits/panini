@@ -31,6 +31,8 @@ void populate(Scene *scene, Geometry *geo);
 int read_glsl(char* path, int glsl_length, const GLchar** glsl);
 int compile_glsl(GLuint *shader, GLenum shader_type, int glsl_length, const GLchar* glsl);
 void link_shader(GLuint vertex_shader, GLuint fragment_shader, GLuint *program);
+// TODO: BONUS: cache compiled shader binary (save to file)
+
 
 #if 0
 Vertex vertices[3] = {

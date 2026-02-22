@@ -34,57 +34,9 @@ typedef struct Clock_s {
 } Clock;
 
 
-typedef struct Scene_s {
-    // data references
-    int     num_indices;
-    // OpenGL object references
-    GLuint  vertex_buffer;
-    GLuint  index_buffer;
-    GLuint  shader;
-    // NOTE: just one big statically buffered object
-    // NOTE: hardcoding the specifics of each buffer
-    // -- vertex struct and setup can ultimately be whatever
-    // -- alway GL_TRIANGLES (triangle soup) GL_UNSIGNED_INT
-} Scene;
-
-
 /////////////////////
 // -- FUNCTIONS -- //
 /////////////////////
-
-
-void populate(Scene *scene, Geometry *geo) {
-    // vertex buffer
-    glGenBuffers(1, &scene->vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, scene->vertex_buffer);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(Vertex) * geo->num_vertices, geo->vertices,
-        GL_STATIC_DRAW);
-
-    // vertex attribs
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(
-        0, 3, GL_FLOAT, GL_FALSE,
-        sizeof(Vertex), (void*)offsetof(Vertex, position));
-
-    // index buffer
-    glGenBuffers(1, &scene->index_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, scene->index_buffer);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(uint32_t) * geo->num_indices, geo->indices,
-        GL_STATIC_DRAW);
-    scene->num_indices = geo->num_indices;
-}
-
-// TODO: load shader from files & compile
-// -- filesystem navigation
-// -- file reads
-// -- shader object construction
-// -- shader program compilation
-// -- surface compile errors
-// -- BONUS: cache compiled shader binary (save to file)
 
 
 void print_usage(char* argv_0) {
