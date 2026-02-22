@@ -7,6 +7,9 @@
 // OpenGL (-lGL)
 #include <GL/gl.h>
 
+// SDL2 (`sdl2-config --cflags --libs`)
+#include <SDL2/SDL.h>
+
 #include "geometry.h"
 
 
@@ -33,32 +36,5 @@ int compile_glsl(GLuint *shader, GLenum shader_type, int glsl_length, const GLch
 void link_shader(GLuint vertex_shader, GLuint fragment_shader, GLuint *program);
 // TODO: BONUS: cache compiled shader binary (save to file)
 
-
-#if 0
-Vertex vertices[3] = {
-    {.position={-0.75, -0.75, 0}},
-    {.position={+0.00, +0.75, 0}},
-    {.position={+0.75, -0.75, 0}}};
-
-uint32_t indices[3] = {0, 1, 2};
-
-Geometry geo = {
-    sizeof(vertices), sizeof(indices),
-    vertices, indices};
-
-Scene scene = {0, 0, 0, 0};
-populate(&scene, &geo);
-
-GLchar glsl[4096];  // 4KB limit, not messing with malloc
-int glsl_length;
-
-GLuint vertex_shader = 0;
-glsl_length = read_glsl("...", sizeof(glsl), &glsl)
-compile_glsl(&vertex_shader, GL_VERTEX_SHADER, glsl_length, glsl);
-
-GLuint fragment_shader = 0;
-glsl_length = read_glsl("...", sizeof(glsl), &glsl)
-compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, glsl_length, glsl);
-
-link_shader(vertex_shader, fragment_shader, &scene.shader)
-#endif
+// draw
+void draw_scene(SDL_Window **window, Scene *scene);

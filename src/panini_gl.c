@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // GLEW (-lGLEW)
 #include <GL/glew.h>
@@ -14,6 +15,7 @@
 #include <SDL2/SDL_opengl.h>
 
 #include "geometry.h"
+#include "render_gl.h"
 
 
 // default to PSVita display resolution
@@ -83,32 +85,67 @@ int init_context(int major, int minor, SDL_Window **window, SDL_GLContext *conte
 
 void init_OpenGL() {
     glewInit();  // load OpenGL functions
-    glClearColor(0.1, 0.4, 0.5, 1.0);
+    // glClearColor(0.1, 0.4, 0.5, 1.0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
 }
 
 
-void draw_OpenGL(SDL_Window **window) {  // Scene *scene
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+// isn't drawing anything!?
+int init_scene(Scene *scene) {
+    // TODO: error handling
+    Vertex vertices[] = {
+        {.position={-0.5f, -0.5f, +0.0f}},
+        {.position={+0.5f, -0.5f, +0.0f}},
+        {.position={+0.0f, +0.5f, +0.0f}}};
 
-    // TODO: update scene according to tick updates
-    // -- move the camera
+    uint32_t indices[] = {0, 1, 2};
 
-    // TODO: render scene
-    // switch to scene shader
-    // -- glUseProgram(scene->shader);
-    // update camera uniform
-    // -- update_camera(&camera, &tick_inputs)
-    // -- glUniformMatrix4fv(...);
-    // draw scene
-    // -- glDrawElements(GL_TRIANGLES, scene->num_indices, GL_UNSIGNED_INT, NULL);
+    Geometry geo = {
+        sizeof(vertices) / sizeof(Vertex),
+        sizeof(indices) / sizeof(uint32_t),
+        vertices, indices};
 
-    // TODO: panini reprojection
-    // -- 6x camera matrices (or some clever shader trick)
-    // -- render each view to a renderbuffer
-    // -- renderbuffer -> cube texture
-    // -- panini reprojection "scene"
+    // init vertex & index buffers
+    populate(scene, &geo);
 
-    SDL_GL_SwapWindow(*window);
+    // init shaders
+    // GLchar glsl[4096];  // 4KB limit, not messing with malloc
+    // int glsl_length;
+
+    const GLchar* vertex_glsl =
+        "#version 450 core\n"
+        "layout (location = 0) in vec3 vertexPosition;\n"
+        "out vec3 position;\n"
+        "void main() {\n"
+        "    position = vertexPosition;\n"
+        "    gl_Position = vec4(vertexPosition, 1.0);\n"
+        "}\n";
+
+    GLuint vertex_shader = 0;
+    // glsl_length = read_glsl("...", sizeof(glsl), &glsl);
+    // compile_glsl(&vertex_shader, GL_VERTEX_SHADER, glsl_length, glsl);
+    compile_glsl(
+        &vertex_shader, GL_VERTEX_SHADER,
+        strlen(vertex_glsl), vertex_glsl);
+
+    const GLchar* fragment_glsl =
+        "#version 450 core\n"
+        "layout (location = 0) out vec4 outColour;\n"
+        "in vec3 position;\n"
+        "void main() {\n"
+        "    outColour = vec4(position, 1);\n"
+        "}\n";
+
+    GLuint fragment_shader = 0;
+    // glsl_length = read_glsl("...", sizeof(glsl), &glsl);
+    // compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, glsl_length, glsl);
+    compile_glsl(
+        &fragment_shader, GL_FRAGMENT_SHADER,
+        strlen(fragment_glsl), fragment_glsl);
+
+    link_shader(vertex_shader, fragment_shader, &scene->shader);
+
+    return 0;
 }
 
 
@@ -138,17 +175,21 @@ int main(int argc, char* argv[]) {
     SDL_GLContext context = NULL;  // void*
     if (init_context(4, 5, &window, &context) != 0) {
         fprintf(stderr, "init_context failed\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
         return 1;
     }
 
     init_OpenGL();
 
-    // TODO: test triangle
-    // Scene scene;
-    // init_scene(&scene)
-    // - init_buffers(&scene, geometry)
-    // - init_shaders(&scene, raw_vertex_shader, raw_fragment_shader)
-    // - init_uniforms(&scene)  // camera
+    Scene scene = {0, 0, 0, 0};
+    if (init_scene(&scene) != 0) {
+        fprintf(stderr, "init_scene failed\n");
+        SDL_GL_DeleteContext(context);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
 
     Clock clock = {
         .accumulator = 0,
@@ -187,8 +228,7 @@ int main(int argc, char* argv[]) {
         clock.prev_tick = SDL_GetTicks64();
 
         // draw
-        // TODO: pass in scene & dt
-        draw_OpenGL(&window);
+        draw_scene(&window, &scene);
     }
 
     SDL_GL_DeleteContext(context);

@@ -20,5 +20,5 @@ run: build/panini_gl.exe
 debug: build/panini_gl.exe
 	gdb -ex run -ex bt --args build/panini_gl.exe
 
-build/panini_gl.exe: src/panini_gl.c
-	$(CC) $(CFLAGS) $(GLFLAGS) $< -o $@ $(SDL2FLAGS)
+build/panini_gl.exe: src/panini_gl.c src/render_gl.c
+	$(CC) $(CFLAGS) $(GLFLAGS) $^ -o $@ $(SDL2FLAGS)

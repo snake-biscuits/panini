@@ -1,6 +1,9 @@
 // Using C23 Standard
 #include <stdio.h>
 
+// SDL2 (`sdl2-config --cflags --libs`)
+#include <SDL2/SDL.h>
+
 #include "render_gl.h"
 
 
@@ -85,4 +88,21 @@ void link_shader(GLuint vertex_shader, GLuint fragment_shader, GLuint *program) 
     glLinkProgram(*program);
     glDetachShader(*program, vertex_shader);
     glDetachShader(*program, fragment_shader);
+}
+
+
+void draw_scene(SDL_Window **window, Scene *scene) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(scene->shader);
+    // TODO: update shader unforms (view matrix)
+    glDrawElements(GL_TRIANGLES, scene->num_indices, GL_UNSIGNED_INT, NULL);
+
+    // TODO: panini reprojection
+    // -- 6x camera matrices (or some clever shader trick)
+    // -- render each view to a renderbuffer
+    // -- renderbuffer -> cube texture
+    // -- panini reprojection "scene"
+
+    SDL_GL_SwapWindow(*window);
 }
