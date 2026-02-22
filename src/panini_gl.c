@@ -92,7 +92,6 @@ void init_OpenGL() {
 
 // isn't drawing anything!?
 int init_scene(Scene *scene) {
-    // TODO: error handling
     Vertex vertices[] = {
         {.position={-0.5f, -0.5f, +0.0f}},
         {.position={+0.5f, -0.5f, +0.0f}},
@@ -105,12 +104,13 @@ int init_scene(Scene *scene) {
         sizeof(indices) / sizeof(uint32_t),
         vertices, indices};
 
-    // init vertex & index buffers
     populate(scene, &geo);
 
-    // init shaders
     // GLchar glsl[4096];  // 4KB limit, not messing with malloc
-    // int glsl_length;
+    // int glsl_length = read_glsl("...", sizeof(glsl), &glsl);
+    // compile_glsl(&vertex_shader, GL_VERTEX_SHADER, glsl_length, glsl);
+    // glsl_length = read_glsl("...", sizeof(glsl), &glsl);
+    // compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, glsl_length, glsl);
 
     const GLchar* vertex_glsl =
         "#version 450 core\n"
@@ -122,28 +122,29 @@ int init_scene(Scene *scene) {
         "}\n";
 
     GLuint vertex_shader = 0;
-    // glsl_length = read_glsl("...", sizeof(glsl), &glsl);
-    // compile_glsl(&vertex_shader, GL_VERTEX_SHADER, glsl_length, glsl);
-    compile_glsl(
-        &vertex_shader, GL_VERTEX_SHADER,
-        strlen(vertex_glsl), vertex_glsl);
+    if (compile_glsl(&vertex_shader, GL_VERTEX_SHADER, strlen(vertex_glsl), vertex_glsl) != 0) {
+        fprintf(stderr, "vertex_shader failed to compile\n");
+        return 1;
+    }
 
     const GLchar* fragment_glsl =
         "#version 450 core\n"
         "layout (location = 0) out vec4 outColour;\n"
         "in vec3 position;\n"
         "void main() {\n"
-        "    outColour = vec4(position, 1);\n"
+        "    outColour = vec4(1, 1, 1, 1);\n"
         "}\n";
 
     GLuint fragment_shader = 0;
-    // glsl_length = read_glsl("...", sizeof(glsl), &glsl);
-    // compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, glsl_length, glsl);
-    compile_glsl(
-        &fragment_shader, GL_FRAGMENT_SHADER,
-        strlen(fragment_glsl), fragment_glsl);
+    if (compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, strlen(fragment_glsl), fragment_glsl) != 0) {
+        fprintf(stderr, "vertex_shader failed to compile\n");
+        return 1;
+    }
 
-    link_shader(vertex_shader, fragment_shader, &scene->shader);
+    if (link_shader(vertex_shader, fragment_shader, &scene->shader) != 0) {
+        fprintf(stderr, "link_shader failed\n");
+        return 1;
+    }
 
     return 0;
 }

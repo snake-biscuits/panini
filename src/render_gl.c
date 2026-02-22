@@ -81,13 +81,29 @@ int compile_glsl(GLuint *shader, GLenum shader_type, int glsl_length, const GLch
 }
 
 
-void link_shader(GLuint vertex_shader, GLuint fragment_shader, GLuint *program) {
+int link_shader(GLuint vertex_shader, GLuint fragment_shader, GLuint *program) {
     *program = glCreateProgram();
     glAttachShader(*program, vertex_shader);
     glAttachShader(*program, fragment_shader);
     glLinkProgram(*program);
+
+    GLint linked;
+    glGetProgramiv(*program, GL_LINK_STATUS, &linked);
+    if (linked == GL_FALSE) {
+        fprintf(stderr, "shader program failed to link\n");
+
+        GLint log_length;
+        glGetProgramiv(*program, GL_INFO_LOG_LENGTH, &log_length);
+        GLchar log[4096];
+        // NOTE: not checking if log_length > sizeof(log)
+        glGetProgramInfoLog(*program, sizeof(log), &log_length, log);
+        fprintf(stderr, "%s\n", log);
+        return 1;
+    }
+
     glDetachShader(*program, vertex_shader);
     glDetachShader(*program, fragment_shader);
+    return 0;
 }
 
 
