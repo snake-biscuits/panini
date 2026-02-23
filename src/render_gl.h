@@ -13,17 +13,16 @@
 #include "geometry.h"
 
 
+// bucket of opengl state for rendering
 typedef struct Scene_s {
     // data references
     int     num_indices;
+    // NOTE: assuming GL_TRIANGLE & GL_UNSIGNED_INT for draw calls
     // OpenGL object references
+    GLuint  vertex_array;
     GLuint  vertex_buffer;
     GLuint  index_buffer;
     GLuint  shader;
-    // NOTE: just one big statically buffered object
-    // NOTE: hardcoding the specifics of each buffer
-    // -- vertex struct and setup can ultimately be whatever
-    // -- always GL_TRIANGLES (triangle soup) GL_UNSIGNED_INT
 } Scene;
 
 
@@ -34,7 +33,9 @@ void populate(Scene *scene, Geometry *geo);
 int read_glsl(char* path, int glsl_length, const GLchar** glsl);
 int compile_glsl(GLuint *shader, GLenum shader_type, int glsl_length, const GLchar* glsl);
 int link_shader(GLuint vertex_shader, GLuint fragment_shader, GLuint *program);
-// TODO: BONUS: cache compiled shader binary (save to file)
+int cache_shader(GLuint *program, char* path);
+// int load_shader(GLuint *program, char* path);
+// -- glProgramBinary(*program, *bin_format, bin, sizeof(bin));
 
 // draw
 void draw_scene(SDL_Window **window, Scene *scene);

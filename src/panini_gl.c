@@ -23,22 +23,12 @@
 #define HEIGHT 544
 
 
-//////////////////////
-// -- STRUCTURES -- //
-//////////////////////
-
-
 typedef struct Clock_s {
     uint64_t accumulator;
     uint64_t delta;
     uint64_t prev_tick;
     uint64_t tick_length;
 } Clock;
-
-
-/////////////////////
-// -- FUNCTIONS -- //
-/////////////////////
 
 
 void print_usage(char* argv_0) {
@@ -93,11 +83,14 @@ void init_OpenGL() {
 // isn't drawing anything!?
 int init_scene(Scene *scene) {
     Vertex vertices[] = {
-        {.position={-0.5f, -0.5f, +0.0f}},
-        {.position={+0.5f, -0.5f, +0.0f}},
-        {.position={+0.0f, +0.5f, +0.0f}}};
+        {.position={-0.8f, -0.8f, +0.0f}},
+        {.position={+0.8f, -0.8f, +0.0f}},
+        {.position={+0.8f, +0.8f, +0.0f}},
+        {.position={-0.8f, +0.8f, +0.0f}}};
 
-    uint32_t indices[] = {0, 1, 2};
+    uint32_t indices[] = {
+        0, 1, 2,
+        0, 2, 3};
 
     Geometry geo = {
         sizeof(vertices) / sizeof(Vertex),
@@ -132,12 +125,14 @@ int init_scene(Scene *scene) {
         "layout (location = 0) out vec4 outColour;\n"
         "in vec3 position;\n"
         "void main() {\n"
-        "    outColour = vec4(1, 1, 1, 1);\n"
+        "    vec3 xyz = (position + 1) / 2;\n"
+        "    float b = 1 - xyz.r;\n"
+        "    outColour = vec4(xyz.rg, b, 1.0);\n"
         "}\n";
 
     GLuint fragment_shader = 0;
     if (compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, strlen(fragment_glsl), fragment_glsl) != 0) {
-        fprintf(stderr, "vertex_shader failed to compile\n");
+        fprintf(stderr, "fragment_shader failed to compile\n");
         return 1;
     }
 
@@ -214,6 +209,7 @@ int main(int argc, char* argv[]) {
                         running = false;
                     }
                     break;
+                default: break;
             }
         }
 

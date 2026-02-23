@@ -8,6 +8,11 @@
 
 
 void populate(Scene *scene, Geometry *geo) {
+    // NOTE: core OpenGL profiles must use a VAO
+    // -- this restriction does not apply to the compatibility profile
+    glGenVertexArrays(1, &scene->vertex_array);
+    glBindVertexArray(scene->vertex_array);
+
     // vertex buffer
     glGenBuffers(1, &scene->vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, scene->vertex_buffer);
@@ -48,6 +53,8 @@ int read_glsl(char* path, int glsl_length, const GLchar** glsl) {
 
     rewind(file);
     int bytes_read = fread(glsl, 1, file_length, file);
+    fclose(file);
+
     if (bytes_read != file_length) {
         fprintf(stderr, "failed to read shader: %s\n", path);
         return 0;
@@ -86,12 +93,10 @@ int link_shader(GLuint vertex_shader, GLuint fragment_shader, GLuint *program) {
     glAttachShader(*program, vertex_shader);
     glAttachShader(*program, fragment_shader);
     glLinkProgram(*program);
-
-    GLint linked;
-    glGetProgramiv(*program, GL_LINK_STATUS, &linked);
-    if (linked == GL_FALSE) {
+    GLint is_linked;
+    glGetProgramiv(*program, GL_LINK_STATUS, &is_linked);
+    if (is_linked != GL_TRUE) {
         fprintf(stderr, "shader program failed to link\n");
-
         GLint log_length;
         glGetProgramiv(*program, GL_INFO_LOG_LENGTH, &log_length);
         GLchar log[4096];
@@ -102,7 +107,47 @@ int link_shader(GLuint vertex_shader, GLuint fragment_shader, GLuint *program) {
     }
 
     glDetachShader(*program, vertex_shader);
+    glDeleteShader(vertex_shader);
     glDetachShader(*program, fragment_shader);
+    glDeleteShader(fragment_shader);
+
+    glValidateProgram(*program);
+    GLint is_valid;
+    glGetProgramiv(*program, GL_VALIDATE_STATUS, &is_valid);
+    if (is_valid != GL_TRUE) {
+        fprintf(stderr, "invalid shader program\n");
+        GLint log_length;
+        glGetProgramiv(*program, GL_INFO_LOG_LENGTH, &log_length);
+        GLchar log[4096];
+        // NOTE: not checking if log_length > sizeof(log)
+        glGetProgramInfoLog(*program, sizeof(log), &log_length, log);
+        fprintf(stderr, "%s\n", log);
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int cache_shader(GLuint *program, char* path) {
+    GLsizei bin_size = 0;
+    GLenum  bin_type = 0;
+    uint8_t bin[8092];
+
+    glGetProgramiv(*program, GL_PROGRAM_BINARY_LENGTH, &bin_size);
+    if (bin_size > sizeof(bin)) {
+        fprintf(stderr, "compiled shader is too large: %d > %lu\n", bin_size, sizeof(bin));
+        return 1;
+    }
+
+    glGetProgramBinary(*program, sizeof(bin), &bin_size, &bin_type, &bin);
+
+    printf("bin_size=%d, bin_type=0x%04X\n", bin_size, bin_type);
+    FILE *bin_file = fopen("panini.shader", "wb");
+    fwrite(bin, sizeof(bin_type), bin_type, bin_file);
+    fwrite(bin, 1, bin_size, bin_file);
+    fclose(bin_file);
+
     return 0;
 }
 
@@ -111,7 +156,7 @@ void draw_scene(SDL_Window **window, Scene *scene) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(scene->shader);
-    // TODO: update shader unforms (view matrix)
+    // TODO: update shader uniforms (view matrix)
     glDrawElements(GL_TRIANGLES, scene->num_indices, GL_UNSIGNED_INT, NULL);
 
     // TODO: panini reprojection
