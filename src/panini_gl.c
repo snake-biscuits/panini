@@ -74,22 +74,29 @@ int init_context(int major, int minor, SDL_Window **window, SDL_GLContext *conte
 
 void init_OpenGL() {
     glewInit();  // load OpenGL functions
-    // glClearColor(0.1, 0.4, 0.5, 1.0);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.1, 0.4, 0.5, 1.0);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
 }
 
 
-// isn't drawing anything!?
 int init_scene(Scene *scene) {
+    // TODO: load geo from .obj file
     Vertex vertices[] = {
-        {.position={-0.8f, -0.8f, +0.0f}},
-        {.position={+0.8f, -0.8f, +0.0f}},
-        {.position={+0.8f, +0.8f, +0.0f}},
-        {.position={-0.8f, +0.8f, +0.0f}}};
+        {.position={-0.8f, -0.8f,  -1.0f}},
+        {.position={-0.8f, -0.8f, -20.0f}},
+        {.position={-0.8f, +0.8f, -20.0f}},
+        {.position={-0.8f, +0.8f,  -1.0f}},
+        {.position={+0.8f, -0.8f,  -1.0f}},
+        {.position={+0.8f, -0.8f, -20.0f}},
+        {.position={+0.8f, +0.8f, -20.0f}},
+        {.position={+0.8f, +0.8f,  -1.0f}},
+    };
 
     uint32_t indices[] = {
-        0, 1, 2,
-        0, 2, 3};
+        0, 1, 2,  0, 2, 3,
+        6, 5, 4,  7, 6, 4,
+    };
 
     Geometry geo = {
         sizeof(vertices) / sizeof(Vertex),
@@ -102,7 +109,7 @@ int init_scene(Scene *scene) {
     int glsl_length = 0;
 
     GLuint vertex_shader = 0;
-    glsl_length = read_glsl("shaders/basic.vert.glsl", sizeof(glsl), (const GLchar**)&glsl);
+    glsl_length = read_glsl("shaders/fov90.vert.glsl", sizeof(glsl), (const GLchar**)&glsl);
     // NOTE: compile_glsl will fail automatically if the file fails to load (EOF)
     if (compile_glsl(&vertex_shader, GL_VERTEX_SHADER, glsl_length, glsl) != 0) {
         fprintf(stderr, "vertex_shader failed to compile\n");
@@ -110,7 +117,7 @@ int init_scene(Scene *scene) {
     }
 
     GLuint fragment_shader = 0;
-    glsl_length = read_glsl("shaders/basic.frag.glsl", sizeof(glsl), (const GLchar**)&glsl);
+    glsl_length = read_glsl("shaders/clay.frag.glsl", sizeof(glsl), (const GLchar**)&glsl);
     if (compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, glsl_length, glsl) != 0) {
         fprintf(stderr, "fragment_shader failed to compile\n");
         return 1;
