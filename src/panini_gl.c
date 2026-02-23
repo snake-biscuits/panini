@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 // GLEW (-lGLEW)
 #include <GL/glew.h>
@@ -99,39 +98,20 @@ int init_scene(Scene *scene) {
 
     populate(scene, &geo);
 
-    // GLchar glsl[4096];  // 4KB limit, not messing with malloc
-    // int glsl_length = read_glsl("...", sizeof(glsl), &glsl);
-    // compile_glsl(&vertex_shader, GL_VERTEX_SHADER, glsl_length, glsl);
-    // glsl_length = read_glsl("...", sizeof(glsl), &glsl);
-    // compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, glsl_length, glsl);
-
-    const GLchar* vertex_glsl =
-        "#version 450 core\n"
-        "layout (location = 0) in vec3 vertexPosition;\n"
-        "out vec3 position;\n"
-        "void main() {\n"
-        "    position = vertexPosition;\n"
-        "    gl_Position = vec4(vertexPosition, 1.0);\n"
-        "}\n";
+    const GLchar glsl[4096] = "\0";
+    int glsl_length = 0;
 
     GLuint vertex_shader = 0;
-    if (compile_glsl(&vertex_shader, GL_VERTEX_SHADER, strlen(vertex_glsl), vertex_glsl) != 0) {
+    glsl_length = read_glsl("shaders/basic.vert.glsl", sizeof(glsl), (const GLchar**)&glsl);
+    // NOTE: compile_glsl will fail automatically if the file fails to load (EOF)
+    if (compile_glsl(&vertex_shader, GL_VERTEX_SHADER, glsl_length, glsl) != 0) {
         fprintf(stderr, "vertex_shader failed to compile\n");
         return 1;
     }
 
-    const GLchar* fragment_glsl =
-        "#version 450 core\n"
-        "layout (location = 0) out vec4 outColour;\n"
-        "in vec3 position;\n"
-        "void main() {\n"
-        "    vec3 xyz = (position + 1) / 2;\n"
-        "    float b = 1 - xyz.r;\n"
-        "    outColour = vec4(xyz.rg, b, 1.0);\n"
-        "}\n";
-
     GLuint fragment_shader = 0;
-    if (compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, strlen(fragment_glsl), fragment_glsl) != 0) {
+    glsl_length = read_glsl("shaders/basic.frag.glsl", sizeof(glsl), (const GLchar**)&glsl);
+    if (compile_glsl(&fragment_shader, GL_FRAGMENT_SHADER, glsl_length, glsl) != 0) {
         fprintf(stderr, "fragment_shader failed to compile\n");
         return 1;
     }

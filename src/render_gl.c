@@ -45,9 +45,16 @@ int read_glsl(char* path, int glsl_length, const GLchar** glsl) {
         return 0;
     }
 
-    int file_length = fseek(file, 0, SEEK_END);
-    if (file_length > glsl_length) {
-        fprintf(stderr, "shader file is too long: %s (%d > %d)\n", path, file_length, glsl_length);
+    if (fseek(file, 0, SEEK_END) != 0) {
+        fprintf(stderr, "seek failed: %s\n", path);
+        return 0;
+    }
+    long file_length = ftell(file);
+    if (file_length == 0) {
+        fprintf(stderr, "shader file is empty: %s", path);
+        return 0;
+    } else if (file_length > glsl_length) {
+        fprintf(stderr, "shader file is too long: %s (%lu > %d)\n", path, file_length, glsl_length);
         return 0;
     }
 
@@ -133,6 +140,7 @@ int cache_shader(GLuint *program, char* path) {
     GLsizei bin_size = 0;
     GLenum  bin_type = 0;
     uint8_t bin[8092];
+    // NOTE: even the most basic shader is larger than 4KB
 
     glGetProgramiv(*program, GL_PROGRAM_BINARY_LENGTH, &bin_size);
     if (bin_size > sizeof(bin)) {
@@ -142,9 +150,9 @@ int cache_shader(GLuint *program, char* path) {
 
     glGetProgramBinary(*program, sizeof(bin), &bin_size, &bin_type, &bin);
 
-    printf("bin_size=%d, bin_type=0x%04X\n", bin_size, bin_type);
-    FILE *bin_file = fopen("panini.shader", "wb");
-    fwrite(bin, sizeof(bin_type), bin_type, bin_file);
+    FILE *bin_file = fopen(path, "wb");
+    fwrite(bin, sizeof(GLenum), bin_type, bin_file);
+    fwrite(bin, sizeof(GLsizei), bin_size, bin_file);
     fwrite(bin, 1, bin_size, bin_file);
     fclose(bin_file);
 
