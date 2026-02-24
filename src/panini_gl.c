@@ -75,27 +75,84 @@ int init_context(int major, int minor, SDL_Window **window, SDL_GLContext *conte
 void init_OpenGL() {
     glewInit();  // load OpenGL functions
     glClearColor(0.1, 0.4, 0.5, 1.0);
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CCW);
+    glFrontFace(GL_CW);
 }
 
 
 int init_scene(Scene *scene) {
     // TODO: load geo from .obj file
     Vertex vertices[] = {
-        {.position={-0.8f, -0.8f,  -1.0f}},
-        {.position={-0.8f, -0.8f, -20.0f}},
-        {.position={-0.8f, +0.8f, -20.0f}},
-        {.position={-0.8f, +0.8f,  -1.0f}},
-        {.position={+0.8f, -0.8f,  -1.0f}},
-        {.position={+0.8f, -0.8f, -20.0f}},
-        {.position={+0.8f, +0.8f, -20.0f}},
-        {.position={+0.8f, +0.8f,  -1.0f}},
+        // west wall
+        {.position={-1.0, +1.8,  -1}, .normal={0, 0, -1}},
+        {.position={-0.8, +1.8,  -1}, .normal={0, 0, -1}},
+        {.position={-0.8, -0.8,  -1}, .normal={0, 0, -1}},
+        {.position={-1.0, -0.8,  -1}, .normal={0, 0, -1}},
+
+        {.position={-0.8, +1.8,  -1}, .normal={+1, 0, 0}},
+        {.position={-0.8, +1.8,  -2}, .normal={+1, 0, 0}},
+        {.position={-0.8, -0.8,  -2}, .normal={+1, 0, 0}},
+        {.position={-0.8, -0.8,  -1}, .normal={+1, 0, 0}},
+
+        {.position={-1.0, +1.8,  -2}, .normal={+1, 0, 0}},
+        {.position={-1.0, +1.8,  -5}, .normal={+1, 0, 0}},
+        {.position={-1.0, -0.8,  -5}, .normal={+1, 0, 0}},
+        {.position={-1.0, -0.8,  -2}, .normal={+1, 0, 0}},
+
+        {.position={-1.0, +1.8,  -5}, .normal={0, 0, -1}},
+        {.position={-0.8, +1.8,  -5}, .normal={0, 0, -1}},
+        {.position={-0.8, -0.8,  -5}, .normal={0, 0, -1}},
+        {.position={-1.0, -0.8,  -5}, .normal={0, 0, -1}},
+
+        {.position={-0.8, +1.8,  -5}, .normal={+1, 0, 0}},
+        {.position={-0.8, +1.8,  -6}, .normal={+1, 0, 0}},
+        {.position={-0.8, -0.8,  -6}, .normal={+1, 0, 0}},
+        {.position={-0.8, -0.8,  -5}, .normal={+1, 0, 0}},
+
+        {.position={-1.0, +1.8,  -6}, .normal={+1, 0, 0}},
+        {.position={-1.0, +1.8,  -9}, .normal={+1, 0, 0}},
+        {.position={-1.0, -0.8,  -9}, .normal={+1, 0, 0}},
+        {.position={-1.0, -0.8,  -6}, .normal={+1, 0, 0}},
+
+        {.position={-1.0, +1.8,  -9}, .normal={0, 0, -1}},
+        {.position={-0.8, +1.8,  -9}, .normal={0, 0, -1}},
+        {.position={-0.8, -0.8,  -9}, .normal={0, 0, -1}},
+        {.position={-1.0, -0.8,  -9}, .normal={0, 0, -1}},
+
+        {.position={-0.8, +1.8,  -9.0}, .normal={+1, 0, 0}},
+        {.position={-0.8, +1.8, -10.0}, .normal={+1, 0, 0}},
+        {.position={-0.8, -0.8, -10.0}, .normal={+1, 0, 0}},
+        {.position={-0.8, -0.8,  -9.0}, .normal={+1, 0, 0}},
+        // east wall
+        {.position={+1.0, -0.8,  -1}, .normal={0, 0, -1}},
+        {.position={+0.8, -0.8,  -1}, .normal={0, 0, -1}},
+        {.position={+0.8, +1.8,  -1}, .normal={0, 0, -1}},
+        {.position={+1.0, +1.8,  -1}, .normal={0, 0, -1}},
+
+        {.position={+0.8, -0.8,  -1}, .normal={-1, 0, 0}},
+        {.position={+0.8, -0.8, -10}, .normal={-1, 0, 0}},
+        {.position={+0.8, +1.8, -10}, .normal={-1, 0, 0}},
+        {.position={+0.8, +1.8,  -1}, .normal={-1, 0, 0}},
+        // floor
+        {.position={-1.0, -0.8,   0}, .normal={0, +1, 0}},
+        {.position={-1.0, -0.8, -10}, .normal={0, +1, 0}},
+        {.position={+1.0, -0.8, -10}, .normal={0, +1, 0}},
+        {.position={+1.0, -0.8,   0}, .normal={0, +1, 0}},
     };
 
     uint32_t indices[] = {
-        0, 1, 2,  0, 2, 3,
-        6, 5, 4,  7, 6, 4,
+         0,  1,  2,   0,  2,  3,
+         4,  5,  6,   4,  6,  7,
+         8,  9, 10,   8, 10, 11,
+        12, 13, 14,  12, 14, 15,
+        16, 17, 18,  16, 18, 19,
+        20, 21, 22,  20, 22, 23,
+        24, 25, 26,  24, 26, 27,
+        28, 29, 30,  28, 30, 31,
+        32, 33, 34,  32, 34, 35,
+        36, 37, 38,  36, 38, 39,
+        40, 41, 42,  40, 42, 43,
     };
 
     Geometry geo = {

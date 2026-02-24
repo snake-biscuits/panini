@@ -1,8 +1,18 @@
 #version 450 core
+
 layout (location = 0) in vec3 vertexPosition;
+layout (location = 1) in vec3 vertexNormal;
+layout (location = 2) in vec2 vertexUv;
+
 out vec3 position;
+out vec3 normal;
+out vec2 uv;
+
+
 void main() {
     position = vertexPosition;
+    normal = vertexNormal;
+    uv = vertexUv;
 
     mat4 view_matrix;
     float near = 0.1;

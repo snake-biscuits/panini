@@ -9,7 +9,7 @@
 
 void populate(Scene *scene, Geometry *geo) {
     // NOTE: core OpenGL profiles must use a VAO
-    // -- this restriction does not apply to the compatibility profile
+    // -- this restriction does not apply to compatibility profiles
     glGenVertexArrays(1, &scene->vertex_array);
     glBindVertexArray(scene->vertex_array);
 
@@ -26,6 +26,14 @@ void populate(Scene *scene, Geometry *geo) {
     glVertexAttribPointer(
         0, 3, GL_FLOAT, GL_FALSE,
         sizeof(Vertex), (void*)offsetof(Vertex, position));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(
+        1, 3, GL_FLOAT, GL_FALSE,
+        sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(
+        2, 2, GL_FLOAT, GL_FALSE,
+        sizeof(Vertex), (void*)offsetof(Vertex, uv));
 
     // index buffer
     glGenBuffers(1, &scene->index_buffer);

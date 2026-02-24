@@ -4,6 +4,12 @@
 #include <stdint.h>
 
 
+typedef struct Vec2_s {
+    float x;
+    float y;
+} Vec2;
+
+
 typedef struct Vec3_s {
     float x;
     float y;
@@ -13,8 +19,8 @@ typedef struct Vec3_s {
 
 typedef struct Vertex_s {
     Vec3  position;
-    // Vec3  normal;
-    // Vec2  uv0;
+    Vec3  normal;
+    Vec2  uv;
 } Vertex;
 
 
