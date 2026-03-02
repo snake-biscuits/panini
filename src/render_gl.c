@@ -55,14 +55,17 @@ int read_glsl(char* path, int glsl_length, const GLchar** glsl) {
 
     if (fseek(file, 0, SEEK_END) != 0) {
         fprintf(stderr, "seek failed: %s\n", path);
+        fclose(file);
         return 0;
     }
     long file_length = ftell(file);
     if (file_length == 0) {
         fprintf(stderr, "shader file is empty: %s", path);
+        fclose(file);
         return 0;
     } else if (file_length > glsl_length) {
         fprintf(stderr, "shader file is too long: %s (%lu > %d)\n", path, file_length, glsl_length);
+        fclose(file);
         return 0;
     }
 
