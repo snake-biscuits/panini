@@ -21,11 +21,7 @@ int main(int argc, char* argv[]) {
         .vertices = vertices,
         .indices = indices};
 
-    if (read_obj(
-        argv[1],
-        sizeof(vertices) / sizeof(Vertex),
-        sizeof(indices) / sizeof(uint32_t),
-        &geo) != 0) {
+    if (read_obj(argv[1], &geo) != 0) {
         printf("!!! parse failed !!!\n");
     }
 

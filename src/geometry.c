@@ -183,7 +183,7 @@ int read_face(FILE *file, char* c, ObjFile *obj, Geometry *geo) {
 }
 
 
-int read_obj(char* path, int max_vertices, int max_indices, Geometry *geo) {
+int read_obj(char* path, Geometry *geo) {
     // NOTE: roughly copied from render_gl.c:read_glsl
     // TODO: src/file_io.{c,h}
     // -- int open(char* path, FILE *file, long *filesize);  // error handler

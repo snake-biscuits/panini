@@ -50,7 +50,7 @@ typedef struct ObjFile_s {
 
 
 // .obj file parser
-int read_obj(char* path, int max_vertices, int max_indices, Geometry *geo);
+int read_obj(char* path, Geometry *geo);
 // general parser tools
 int consume_line(FILE *file, char *c);
 int consume_whitespace(FILE *file, char *c);
