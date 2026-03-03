@@ -114,7 +114,7 @@ int read_vertex_token(FILE *file, char *c, int *vi, int *vti, int *vni) {
                 finished = true;  // end of token
             // subtoken -> int
             token[e] = '\0';
-            int index = (e > s) ? atoi(&token[s]): 0;
+            int index = (e > s) ? atoi(&token[s]) : 0;
             // NOTE: atoi is not checked for errors
             s = e + 1;
             // "yield" index
