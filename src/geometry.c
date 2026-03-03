@@ -114,7 +114,6 @@ int read_vertex_token(FILE *file, char *c, int *vi, int *vti, int *vni) {
                 finished = true;  // end of token
             // subtoken -> int
             token[e] = '\0';
-            // read subtoken. or skip if empty ("//")
             int index = (e > s) ? atoi(&token[s]): 0;
             // NOTE: atoi is not checked for errors
             s = e + 1;
@@ -123,7 +122,7 @@ int read_vertex_token(FILE *file, char *c, int *vi, int *vti, int *vni) {
                 case 0: *vi  = index; break;
                 case 1: *vti = index; break;
                 case 2: *vni = index; break;
-                default: return 2;  // unreachable
+                default: return 2;  // too many separators
             }
             i++;
         }
