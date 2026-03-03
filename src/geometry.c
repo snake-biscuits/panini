@@ -114,7 +114,9 @@ int read_vertex_token(FILE *file, char *c, int *vi, int *vti, int *vni) {
                 finished = true;  // end of token
             // subtoken -> int
             token[e] = '\0';
-            int index = (e - s <= 1) ? atoi(&token[s]) : 0;
+            // read subtoken. or skip if empty ("//")
+            int index = (e > s) ? atoi(&token[s]): 0;
+            // NOTE: atoi is not checked for errors
             s = e + 1;
             // "yield" index
             switch (i) {
@@ -129,6 +131,54 @@ int read_vertex_token(FILE *file, char *c, int *vi, int *vti, int *vni) {
     }
     if (i == 0)
         return 3;  // empty token; *vi was not set
+    return 0;
+}
+
+
+int read_face(FILE *file, char* c, ObjFile *obj, Geometry *geo) {
+    int first_vertex = geo->num_vertices;
+    int num_vertices = 0;
+    while (*c != '\n') {
+        if (geo->num_vertices + 1 >= geo->max_vertices)
+            return 1;  // out of memory (geo.vertices)
+        int vi, vti, vni;
+        if (read_vertex_token(file, c, &vi, &vti, &vni) != 0)
+            return 2;  // failed to parse token
+        // NOTE: haven't checked if the user tried to use 0 as an index
+        if (vi == 0)  // must've been set to 0 by user
+            return 3;  // indices start from 1 (0 is reserved for unset)
+        // remap negative indices
+        vi  = (vi  < 0) ? vi  + obj->num_positions : vi;
+        vti = (vti < 0) ? vti + obj->num_uvs       : vti;
+        vni = (vni < 0) ? vni + obj->num_normals   : vni;
+        // bounds check indices
+        if (vi  < 0 || vi  >= obj->num_positions
+         || vti < 0 || vti >= obj->num_uvs
+         || vni < 0 || vni >= obj->num_normals)
+            return 4;  // index out of bounds
+        // append vertex to geo
+        Vertex vertex = {
+            .position = obj->positions[vi],
+            .normal = obj->normals[vni],
+            .uv = obj->uvs[vti]};
+        geo->vertices[geo->num_vertices] = vertex;
+        geo->num_vertices++;
+        num_vertices++;
+    }
+
+    if (num_vertices < 3)
+        return 5;  // invalid polygon
+
+    // triangle fan polygon
+    for (int i = 2; i < num_vertices; i++) {
+        if (geo->num_indices + 3 >= geo->max_indices)
+            return 6;  // out of memory (geo.indices)
+        geo->indices[geo->num_indices + 0] = first_vertex + 0;
+        geo->indices[geo->num_indices + 1] = first_vertex + i - 1;
+        geo->indices[geo->num_indices + 2] = first_vertex + i;
+        geo->num_indices += 3;
+    }
+
     return 0;
 }
 
@@ -155,19 +205,26 @@ int read_obj(char* path, int max_vertices, int max_indices, Geometry *geo) {
         fclose(file);
         return 1;
     }
-
     rewind(file);
 
+    // obj state
+    Vec3 positions[1024] = {{0, 0, 0}};
+    Vec3 normals[1024] = {{0, 0, 0}};
+    Vec2 uvs[1024] = {{0, 0}};
+
+    ObjFile obj = {
+        .num_positions = 1,
+        .num_normals = 1,
+        .num_uvs = 1,
+        .max_positions = sizeof(positions) / sizeof(Vec3),
+        .max_normals = sizeof(normals) / sizeof(Vec3),
+        .max_uvs = sizeof(uvs) / sizeof(Vec2),
+        .positions = positions,
+        .normals = normals,
+        .uvs = uvs,
+    };
+
     // parse
-    Vec3 vs[1024] = {{0, 0, 0}};
-    int  num_vs = 1;
-    int  max_vs = sizeof(vs) / sizeof(Vec3);
-    Vec3 vns[1024] = {{0, 0, 0}};
-    int  num_vns = 1;
-    int  max_vns = sizeof(vns) / sizeof(Vec3);
-    Vec2 vts[1024] = {{0, 0}};
-    int  num_vts = 1;
-    int  max_vts = sizeof(vts) / sizeof(Vec2);
     char c = '\n';  // last char read
     char opcode = '\0';
     int  line_number = 1;
@@ -182,69 +239,34 @@ int read_obj(char* path, int max_vertices, int max_indices, Geometry *geo) {
         // parse line
         switch (opcode) {
             case 'v':
-                if (read_float_token(file, &c, &vs[num_vs].x) != 0
-                 || read_float_token(file, &c, &vs[num_vs].y) != 0
-                 || read_float_token(file, &c, &vs[num_vs].z) != 0)
+                if (read_float_token(file, &c, &obj.positions[obj.num_positions].x) != 0
+                 || read_float_token(file, &c, &obj.positions[obj.num_positions].y) != 0
+                 || read_float_token(file, &c, &obj.positions[obj.num_positions].z) != 0)
                     failed = true;
-                printf(" %03d | v %f %f %f\n",
-                    line_number, vs[num_vs].x, vs[num_vs].y, vs[num_vs].z);  // DEBUG
-                num_vs++;
-                if (num_vs >= max_vs)
+                obj.num_positions++;
+                if (obj.num_positions >= obj.max_positions)
                     failed = true;
                 break;
             case 't':  // 'vt'
-                if (read_float_token(file, &c, &vts[num_vts].x) != 0
-                 || read_float_token(file, &c, &vts[num_vts].y) != 0)
+                if (read_float_token(file, &c, &obj.uvs[obj.num_uvs].x) != 0
+                 || read_float_token(file, &c, &obj.uvs[obj.num_uvs].y) != 0)
                     failed = true;
-                printf(" %03d | vt %f %f\n",
-                    line_number, vts[num_vts].x, vts[num_vts].y);  // DEBUG
-                num_vts++;
-                if (num_vts >= max_vts)
+                obj.num_uvs++;
+                if (obj.num_uvs >= obj.max_uvs)
                     failed = true;
                 break;
             case 'n':  // 'vn'
-                if (read_float_token(file, &c, &vns[num_vns].x) != 0
-                 || read_float_token(file, &c, &vns[num_vns].y) != 0
-                 || read_float_token(file, &c, &vns[num_vns].z) != 0)
+                if (read_float_token(file, &c, &obj.normals[obj.num_normals].x) != 0
+                 || read_float_token(file, &c, &obj.normals[obj.num_normals].y) != 0
+                 || read_float_token(file, &c, &obj.normals[obj.num_normals].z) != 0)
                     failed = true;
-                printf(" %03d | vn %f %f %f\n",
-                    line_number, vns[num_vns].x, vns[num_vns].y, vns[num_vns].z);  // DEBUG
-                num_vns++;
-                if (num_vns >= max_vns)
+                obj.num_normals++;
+                if (obj.num_normals >= obj.max_normals)
                     failed = true;
                 break;
             case 'f':
-                // NOTE: this will be complex, use a function
-                // int read_face_tokens(FILE* file, char* c,
-                //   int *num_vs, int max_vs, Vec3* vs,
-                //   int *num_vts, int max_vts, Vec2* vts,
-                //   int *num_vns, int max_vns, Vec3* vns,
-                //   int max_vertices, int max_indices, Geo *geo);
-                // NOTE: that's a lot of state, use a struct?
-                // int append_face(FILE *file, char* c, Obj *obj, Geo *geo);
-
-                // TODO:
-                // -- token -> v_index, vn_index, vt_index
-                // -- negative index handling
-                // NOTE: we can use 0 for unspecified fields (indices start from 1)
-                // -- the user shouldn't use that index though
-                // -- also, v_index should never be 0
-
-                // vertices_index = geo->num_vertices
-                // int ngon_verts = 0;
-                // while (c != '\n') {
-                //     read_vertex_token(file, &c, &v_index, &vt_index, &vn_index);
-                //     // TODO: append to geo->vertices (num_vertices++ w/ bounds check)
-                //     // NOTE: no checking for duplicate vertices
-                //     ngon_verts++;
-
-                // #define append(p, i, v)  p[i] = v; i++;  // TODO: bounds check
-                // #undef append
-                
-                // TODO: polygon -> triangle fan indices
-
-                printf(" %03d | f ???\n", line_number);
-                consume_line(file, &c);  // skip, for now
+                if (read_face(file, &c, &obj, geo) != 0)
+                    failed = true;
                 break;
             case '\n':  // empty line
                 break;

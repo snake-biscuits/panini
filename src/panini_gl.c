@@ -156,9 +156,12 @@ int init_scene(Scene *scene) {
     };
 
     Geometry geo = {
-        sizeof(vertices) / sizeof(Vertex),
-        sizeof(indices) / sizeof(uint32_t),
-        vertices, indices};
+        .num_vertices = sizeof(vertices) / sizeof(Vertex),
+        .max_vertices = -1,  // ignored
+        .num_indices = sizeof(indices) / sizeof(uint32_t),
+        .max_indices = -1,  // ignored
+        .vertices = vertices,
+        .indices = indices};
 
     populate(scene, &geo);
 

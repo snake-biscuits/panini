@@ -28,10 +28,25 @@ typedef struct Vertex_s {
 
 typedef struct Geometry_s {
     int       num_vertices;
+    int       max_vertices;
     int       num_indices;
+    int       max_indices;
     Vertex   *vertices;
     uint32_t *indices;
 } Geometry;
+
+
+typedef struct ObjFile_s {
+    int   num_positions;
+    int   max_positions;
+    int   num_normals;
+    int   max_normals;
+    int   num_uvs;
+    int   max_uvs;
+    Vec3 *positions;
+    Vec3 *normals;
+    Vec2 *uvs;
+} ObjFile;
 
 
 // .obj file parser
@@ -45,3 +60,5 @@ int read_opcode(FILE *file, char *c, char *opcode);
 int read_token(FILE *file, char *c, int len_token, char* token);
 int read_float_token(FILE *file, char *c, float *dest);
 int read_vertex_token(FILE *file, char *c, int *vi, int *vni, int *vti);
+// read multiple vertices
+int read_face(FILE *file, char* c, ObjFile *obj, Geometry *geo);
