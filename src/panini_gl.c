@@ -82,89 +82,25 @@ void init_OpenGL() {
 
 
 int init_scene(Scene *scene) {
-    // TODO: load geo from .obj file
-    Vertex vertices[] = {
-        // west wall
-        {.position={-1.0, +1.8,  -1}, .normal={0, 0, -1}},
-        {.position={-0.8, +1.8,  -1}, .normal={0, 0, -1}},
-        {.position={-0.8, -0.8,  -1}, .normal={0, 0, -1}},
-        {.position={-1.0, -0.8,  -1}, .normal={0, 0, -1}},
-
-        {.position={-0.8, +1.8,  -1}, .normal={+1, 0, 0}},
-        {.position={-0.8, +1.8,  -2}, .normal={+1, 0, 0}},
-        {.position={-0.8, -0.8,  -2}, .normal={+1, 0, 0}},
-        {.position={-0.8, -0.8,  -1}, .normal={+1, 0, 0}},
-
-        {.position={-1.0, +1.8,  -2}, .normal={+1, 0, 0}},
-        {.position={-1.0, +1.8,  -5}, .normal={+1, 0, 0}},
-        {.position={-1.0, -0.8,  -5}, .normal={+1, 0, 0}},
-        {.position={-1.0, -0.8,  -2}, .normal={+1, 0, 0}},
-
-        {.position={-1.0, +1.8,  -5}, .normal={0, 0, -1}},
-        {.position={-0.8, +1.8,  -5}, .normal={0, 0, -1}},
-        {.position={-0.8, -0.8,  -5}, .normal={0, 0, -1}},
-        {.position={-1.0, -0.8,  -5}, .normal={0, 0, -1}},
-
-        {.position={-0.8, +1.8,  -5}, .normal={+1, 0, 0}},
-        {.position={-0.8, +1.8,  -6}, .normal={+1, 0, 0}},
-        {.position={-0.8, -0.8,  -6}, .normal={+1, 0, 0}},
-        {.position={-0.8, -0.8,  -5}, .normal={+1, 0, 0}},
-
-        {.position={-1.0, +1.8,  -6}, .normal={+1, 0, 0}},
-        {.position={-1.0, +1.8,  -9}, .normal={+1, 0, 0}},
-        {.position={-1.0, -0.8,  -9}, .normal={+1, 0, 0}},
-        {.position={-1.0, -0.8,  -6}, .normal={+1, 0, 0}},
-
-        {.position={-1.0, +1.8,  -9}, .normal={0, 0, -1}},
-        {.position={-0.8, +1.8,  -9}, .normal={0, 0, -1}},
-        {.position={-0.8, -0.8,  -9}, .normal={0, 0, -1}},
-        {.position={-1.0, -0.8,  -9}, .normal={0, 0, -1}},
-
-        {.position={-0.8, +1.8,  -9.0}, .normal={+1, 0, 0}},
-        {.position={-0.8, +1.8, -10.0}, .normal={+1, 0, 0}},
-        {.position={-0.8, -0.8, -10.0}, .normal={+1, 0, 0}},
-        {.position={-0.8, -0.8,  -9.0}, .normal={+1, 0, 0}},
-        // east wall
-        {.position={+1.0, -0.8,  -1}, .normal={0, 0, -1}},
-        {.position={+0.8, -0.8,  -1}, .normal={0, 0, -1}},
-        {.position={+0.8, +1.8,  -1}, .normal={0, 0, -1}},
-        {.position={+1.0, +1.8,  -1}, .normal={0, 0, -1}},
-
-        {.position={+0.8, -0.8,  -1}, .normal={-1, 0, 0}},
-        {.position={+0.8, -0.8, -10}, .normal={-1, 0, 0}},
-        {.position={+0.8, +1.8, -10}, .normal={-1, 0, 0}},
-        {.position={+0.8, +1.8,  -1}, .normal={-1, 0, 0}},
-        // floor
-        {.position={-1.0, -0.8,   0}, .normal={0, +1, 0}},
-        {.position={-1.0, -0.8, -10}, .normal={0, +1, 0}},
-        {.position={+1.0, -0.8, -10}, .normal={0, +1, 0}},
-        {.position={+1.0, -0.8,   0}, .normal={0, +1, 0}},
-    };
-
-    uint32_t indices[] = {
-         0,  1,  2,   0,  2,  3,
-         4,  5,  6,   4,  6,  7,
-         8,  9, 10,   8, 10, 11,
-        12, 13, 14,  12, 14, 15,
-        16, 17, 18,  16, 18, 19,
-        20, 21, 22,  20, 22, 23,
-        24, 25, 26,  24, 26, 27,
-        28, 29, 30,  28, 30, 31,
-        32, 33, 34,  32, 34, 35,
-        36, 37, 38,  36, 38, 39,
-        40, 41, 42,  40, 42, 43,
-    };
+    // load geo from file
+    Vertex    vertices[512];
+    uint32_t  indices[512];
 
     Geometry geo = {
-        .num_vertices = sizeof(vertices) / sizeof(Vertex),
-        .max_vertices = -1,  // ignored
-        .num_indices = sizeof(indices) / sizeof(uint32_t),
-        .max_indices = -1,  // ignored
+        .num_vertices = 0,
+        .max_vertices = sizeof(vertices) / sizeof(Vertex),
+        .num_indices = 0,
+        .max_indices = sizeof(indices) / sizeof(uint32_t),
         .vertices = vertices,
         .indices = indices};
 
+    if (read_obj("models/hallway.obj", &geo) != 0)
+        return 1;  // failed to parse .obj
+
+    // push geo to GPU
     populate(scene, &geo);
 
+    // load shaders
     const GLchar glsl[4096] = "\0";
     int glsl_length = 0;
 

@@ -24,7 +24,7 @@ test: build/test_obj.exe
 	build/test_obj.exe models/hallway.obj
 
 
-build/panini_gl.exe: src/panini_gl.c src/render_gl.c
+build/panini_gl.exe: src/panini_gl.c src/render_gl.c src/geometry.c
 	$(CC) $(CFLAGS) $(GLFLAGS) $^ -o $@ $(SDL2FLAGS)
 
 
