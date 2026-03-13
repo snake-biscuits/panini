@@ -5,18 +5,7 @@
 // #include <stdlib.h>  // atof & atoi
 #include <stdint.h>
 
-
-typedef struct Vec2_s {
-    float x;
-    float y;
-} Vec2;
-
-
-typedef struct Vec3_s {
-    float x;
-    float y;
-    float z;
-} Vec3;
+#include "vector.h"
 
 
 typedef struct Vertex_s {
